@@ -76,9 +76,9 @@ Read `owner` file if `object==:owner` or `neighbour` if `object==:neighbour`.
 """
 function parse_on(object::Symbol,Case::String,gz::Bool)
     if object==:owner
-        lines=foamOpen(Case.case*"/constant/polyMesh/owner",gz)
+        lines=foamOpen(Case*"/constant/polyMesh/owner",gz)
     elseif object==:neighbour
-        lines=foamOpen(Case.case*"/constant/polyMesh/neighbour",gz)
+        lines=foamOpen(Case*"/constant/polyMesh/neighbour",gz)
     else
         error("Wrong parameter for parse_on")
     end
