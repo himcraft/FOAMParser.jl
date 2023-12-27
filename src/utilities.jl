@@ -91,7 +91,7 @@ function foamOpen(filename::String,gz::Bool)
     if gz==false
         file=open(x->readlines(x),filename,"r")
     else
-        file=GZip.open(x->readlines(x),filename,"r")
+        file=GZip.open(x->readlines(x),filename*".gz","r")
     end
     return file
 end
