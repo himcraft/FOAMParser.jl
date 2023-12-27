@@ -1,5 +1,5 @@
 str2flt(x::String) = parse(Float64,x)
-str2int(x::String) = parse(Integer64,x)
+str2int(x::String) = parse(Int64,x)
 
 
 """
@@ -31,7 +31,7 @@ end
 function fileList(case::String)
     digitlist=['0','1','2','3','4','5','6','7','8','9']
     dir=readdir(case)
-    filter!(x -> x ∈ digitlist, dir)
+    filter!(x -> x[1] ∈ digitlist, dir)
     return dir
 end
 
@@ -67,7 +67,7 @@ TODO: only works for 1D mesh
 function countCells(Case::String,gz::Bool)
     owner = parse_on(:owner,Case,gz)
     neighbour = parse_on(:neighbour,Case,gz)
-    return max(maximum(owner),maximum(neighbour))
+    return max(maximum(owner),maximum(neighbour))+1
 end
 
 """
@@ -104,7 +104,10 @@ end
 function readFieldNames(case::String,dir::Array{String})
     calcdir=filter(x -> x != "0" , dir)
     if !isempty(calcdir)
-        fieldList=filter!(isfile,readdir(case*"/"*calcdir[1]))
+        fieldList = filter!(x -> isfile(case*"/"*calcdir[1]*"/"*x) , readdir(case*"/"*calcdir[1]))
+        fieldList = replace.(fieldList , ".gz" => "")
+    else
+	error("only 0/ directory exist")
     end
     return fieldList
 end
