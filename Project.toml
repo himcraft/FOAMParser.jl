@@ -1,0 +1,13 @@
+name = "FOAM"
+uuid = "faef0fd8-a221-49a6-a29f-831367e0b889"
+authors = ["Zehua Zhang"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
