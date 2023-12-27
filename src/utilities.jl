@@ -1,4 +1,5 @@
 str2flt(x::String) = parse(Float64,x)
+str2int(x::String) = parse(Integer64,x)
 
 
 """
@@ -82,7 +83,7 @@ function parse_on(object::Symbol,Case::String,gz::Bool)
     else
         error("Wrong parameter for parse_on")
     end
-    linenum=str2flt(lines[20])
+    linenum=str2int(lines[20])
     data=str2flt.(lines[22:21+linenum])
     return data
 end
