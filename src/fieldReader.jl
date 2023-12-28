@@ -54,3 +54,14 @@ function boundaryFieldReader(Case::FOAMCase)
 
 end
 
+function H5internalFieldSaver(Case::FOAMCase,field::Array{Float64},fieldName::String)
+    h5open(Case.case*".h5","w") do fid
+	fid[fieldName]=field
+    end
+end
+
+function H5internalFieldReader(Case::FOAMCase,fieldName::String)
+    h5open(Case.case*".h5","r") do fid
+	field=read(fid,fieldName)
+    end
+end
