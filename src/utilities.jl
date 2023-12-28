@@ -11,6 +11,7 @@ timeLength: number of time slots.
 timeSequence: sequence of time slots.
 cells: number of mesh cells. TODO: only 1D for now
 fieldList: names of output fields.
+fieldType: types of output fields. (:scalar & :vector)
 """
 struct FOAMCase
     gz           :: Bool
@@ -19,12 +20,13 @@ struct FOAMCase
     timeSequence :: Vector{String}
     cells        :: Integer
     fieldList    :: Vector{String}
+    fieldType    :: Vector{Symbol}
     function FOAMCase(gz::Bool,case::String)
         timeSequence = fileList(case)
         timeLength = length(timeSequence)
         cells = countCells(case,gz)
-        fieldList = readFieldNames(case,timeSequence)
-        new(gz,case,timeLength,timeSequence,cells,fieldList)
+        fieldList,fieldType = readFieldNames(case,timeSequence,gz)
+        new(gz,case,timeLength,timeSequence,cells,fieldList,fieldType)
     end
 end
 
@@ -101,13 +103,18 @@ function foamOpen(filename::String,Case::FOAMCase)
     return foamOpen(filename,Case.gz)
 end
 
-function readFieldNames(case::String,dir::Array{String})
+function readFieldNames(case::String,dir::Array{String},gz::Bool)
     calcdir=filter(x -> x != "0" , dir)
     if !isempty(calcdir)
         fieldList = filter!(x -> isfile(case*"/"*calcdir[1]*"/"*x) , readdir(case*"/"*calcdir[1]))
         fieldList = replace.(fieldList , ".gz" => "")
+	fieldType = Array{Symbol}(undef,length(fieldList))
+	for (num,field) in enumerate(fieldList)
+	    fieldLines=foamOpen(case*"/"*calcdir[1]*"/"*field,gz)
+	    fieldType[num]=Symbol(replace(split(fieldLines[12])[2],";"=>""))
+	end
     else
 	error("only 0/ directory exist")
     end
-    return fieldList
+    return fieldList,fieldType
 end
