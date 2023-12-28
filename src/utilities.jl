@@ -28,6 +28,11 @@ struct FOAMCase
         fieldList,fieldType = readFieldNames(case,timeSequence,gz)
         new(gz,case,timeLength,timeSequence,cells,fieldList,fieldType)
     end
+    function FOAMCase(gz::Bool,case::String,timeLength::Integer,
+		    timeSequence::Vector{String},cells::Integer,
+		    fieldList::Vector{String},fieldType::Vector{Symbol})
+	new(gz,case,timeLength,timeSequence,cells,fieldList,fieldType)
+    end
 end
 
 function fileList(case::String)
@@ -122,3 +127,30 @@ function readFieldNames(case::String,dir::Array{String},gz::Bool)
     end
     return fieldList,fieldType
 end
+
+function writeFOAMCase(Case::FOAMCase)
+    h5open(Case.case*".h5","cw") do fid
+	g = create_group(fid, "FOAMCase")
+	g["gz"]           = Case.gz
+	g["case"]         = Case.case
+	g["timeLength"]   = Case.timeLength
+	g["timeSequence"] = Case.timeSequence
+	g["cells"]        = Case.cells
+	g["fieldList"]    = Case.fieldList
+	g["fieldType"]    = Case.fieldType
+    end
+end
+
+function readFOAMCase(case::String)
+    h5open(case*".h5","r") do fid
+	g = fid["FOAMCase"]
+	gz           = g["gz"]
+	timeLength   = g["timeLength"]
+	timeSequence = g["timeSequence"]
+	cells        = g["cells"]
+	fieldList    = g["fieldList"]
+	fieldType    = g["fieldType"]
+    end
+    return FOAMCase(gz,case,timeLength,timeSequence,cells,fieldList,fieldType)
+end
+	
