@@ -20,7 +20,7 @@ struct FOAMCase
     timeSequence :: Vector{String}
     cells        :: Integer
     fieldList    :: Vector{String}
-    fieldType    :: Vector{Symbol}
+    fieldType    :: Vector{String}
     function FOAMCase(gz::Bool,case::String)
         timeSequence = fileList(case)
         timeLength = length(timeSequence)
@@ -30,7 +30,7 @@ struct FOAMCase
     end
     function FOAMCase(gz::Bool,case::String,timeLength::Integer,
 		    timeSequence::Vector{String},cells::Integer,
-		    fieldList::Vector{String},fieldType::Vector{Symbol})
+		    fieldList::Vector{String},fieldType::Vector{String})
 	new(gz,case,timeLength,timeSequence,cells,fieldList,fieldType)
     end
 end
@@ -117,10 +117,10 @@ function readFieldNames(case::String,dir::Array{String},gz::Bool)
     if !isempty(calcdir)
         fieldList = filter!(x -> isfile(case*"/"*calcdir[1]*"/"*x) , readdir(case*"/"*calcdir[1]))
         fieldList = replace.(fieldList , ".gz" => "")
-	fieldType = Array{Symbol}(undef,length(fieldList))
+	fieldType = Array{String}(undef,length(fieldList))
 	for (num,field) in enumerate(fieldList)
 	    fieldLines=foamOpen(case*"/"*calcdir[1]*"/"*field,gz)
-	    fieldType[num]=Symbol(replace(split(fieldLines[12])[2],";"=>""))
+	    fieldType[num]=replace(split(fieldLines[12])[2],";"=>"")
 	end
     else
 	error("only 0/ directory exist")
@@ -130,6 +130,9 @@ end
 
 function writeFOAMCase(Case::FOAMCase)
     h5open(Case.case*".h5","cw") do fid
+	if "FOAMCase" in keys(fid)
+	    delete_object(fid,"FOAMCase")
+	end
 	g = create_group(fid, "FOAMCase")
 	g["gz"]           = Case.gz
 	g["case"]         = Case.case
@@ -137,20 +140,20 @@ function writeFOAMCase(Case::FOAMCase)
 	g["timeSequence"] = Case.timeSequence
 	g["cells"]        = Case.cells
 	g["fieldList"]    = Case.fieldList
-	g["fieldType"]    = Case.fieldType
+	g["fieldType"]    = Case.fieldType;
     end
 end
 
 function readFOAMCase(case::String)
-    h5open(case*".h5","r") do fid
-	g = fid["FOAMCase"]
-	gz           = g["gz"]
-	timeLength   = g["timeLength"]
-	timeSequence = g["timeSequence"]
-	cells        = g["cells"]
-	fieldList    = g["fieldList"]
-	fieldType    = g["fieldType"]
-    end
+    fid = h5open(case*".h5","r")
+    g = fid["FOAMCase"]
+    gz           = read(g["gz"])
+    timeLength   = read(g["timeLength"])
+    timeSequence = read(g["timeSequence"])
+    cells        = read(g["cells"])
+    fieldList    = read(g["fieldList"])
+    fieldType    = read(g["fieldType"])
+    close(fid)
     return FOAMCase(gz,case,timeLength,timeSequence,cells,fieldList,fieldType)
 end
 	

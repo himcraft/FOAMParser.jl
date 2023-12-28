@@ -5,7 +5,7 @@ function internalFieldsReader(Case::FOAMCase)
         for (pos,field) in enumerate(Case.fieldList)
             if isfile(Case.case*"/"*snapshot*"/"*field * (Case.gz ? ".gz" : ""))
                 fileContent=foamOpen(Case.case*"/"*snapshot*"/"*field,Case)
-                if Case.fieldType[pos]==:volScalarField
+                if Case.fieldType[pos]=="volScalarField"
                     if split(fileContent[20])[2]=="nonuniform"
                         fieldsIndex[field][time,:]=str2flt.(fileContent[23:22+Case.cells])
                     elseif split(fileContent[20])[2]=="uniform"
@@ -13,7 +13,7 @@ function internalFieldsReader(Case::FOAMCase)
                     else
                         error("error in reading field data")
                     end
-                elseif Case.fieldType[pos]==:volVectorField
+                elseif Case.fieldType[pos]=="volVectorField"
                     continue
                 end
             else
@@ -30,7 +30,7 @@ function internalFieldReader(Case::FOAMCase,field::String)
     for (t,snapshot) in enumerate(Case.timeSequence)
         if isfile(Case.case*"/"*snapshot*"/"*field * (Case.gz ? ".gz" : ""))
             fileContent=foamOpen(Case.case*"/"*snapshot*"/"*field,Case)
-            if fieldType==:volScalarField
+            if fieldType=="volScalarField"
                 if split(fileContent[20])[2]=="nonuniform"
                     fieldData[t,:]=str2flt.(fileContent[23:22+Case.cells])
                 elseif split(fileContent[20])[2]=="uniform"
@@ -38,7 +38,7 @@ function internalFieldReader(Case::FOAMCase,field::String)
                 else
                     error("error in reading field data")
                 end
-            elseif fieldType==:volVectorField
+            elseif fieldType=="volVectorField"
                 continue
 	    else
 		error("unknown fieldType")
