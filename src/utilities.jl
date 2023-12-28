@@ -34,6 +34,10 @@ function fileList(case::String)
     digitlist=['0','1','2','3','4','5','6','7','8','9']
     dir=readdir(case)
     filter!(x -> x[1] ∈ digitlist, dir)
+    dir=string.(sort(str2flt.(dir)))
+    if dir[1]=="0.0" dir[1]="0" end
+    dir=replace.(dir,".0e"=>"e")
+    dir=replace.(dir,"e-"=>"e-0")
     return dir
 end
 
