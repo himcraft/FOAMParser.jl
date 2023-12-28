@@ -55,7 +55,7 @@ function boundaryFieldReader(Case::FOAMCase)
 end
 
 function H5internalFieldSaver(Case::FOAMCase,field::Array{Float64},fieldName::String)
-    h5open(Case.case*".h5","w") do fid
+    h5open(Case.case*".h5","cw") do fid
 	fid[fieldName]=field
     end
 end
@@ -63,7 +63,7 @@ end
 function H5internalFieldSaver(Case::FOAMCase,field::String)
     fieldData=internalFieldReader(Case,field)
     @info "Now writing $field to HDF5 file..."
-    h5open(Case.case*".h5","w") do fid
+    h5open(Case.case*".h5","cw") do fid
 	fid[field]=fieldData
     end
 end
