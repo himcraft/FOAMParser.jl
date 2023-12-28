@@ -1,5 +1,5 @@
 #TODO: process vector files
-function internalFieldReader(Case::FOAMCase)
+function internalFieldsReader(Case::FOAMCase)
     fieldsIndex=Dict(i => Array{Float64}(undef,Case.timeLength,Case.cells) for i in Case.fieldList)
     for (time,snapshot) in enumerate(Case.timeSequence)
         for (pos,field) in enumerate(Case.fieldList)
@@ -22,6 +22,30 @@ function internalFieldReader(Case::FOAMCase)
         end
     end
     return fieldsIndex
+end
+
+function internalFieldReader(Case::FOAMCase,field::String)
+    fieldType=Case.fieldType[Case.fieldList .== field]
+    fieldData=Array{Float64}(undef,Case.timeLength,Case.cells)
+    for (time,snapshot) in enumerate(Case.timeSequence)
+        if isfile(Case.case*"/"*snapshot*"/"*field * (Case.gz ? ".gz" : ""))
+            fileContent=foamOpen(Case.case*"/"*snapshot*"/"*field,Case)
+            if fieldType==:volScalarField
+                if split(fileContent[20])[2]=="nonuniform"
+                    fieldData[time,:]=str2flt.(fileContent[23:22+Case.cells])
+                elseif split(fileContent[20])[2]=="uniform"
+                    fieldData[time,:].=str2flt(replace(split(fileContent[20])[3],";"=>""))
+                else
+                    error("error in reading field data")
+                end
+            elseif fieldType==:volVectorField
+                continue
+            end
+        else
+            fieldData[time,:].=0
+        end
+    end
+    return fieldData
 end
 
 function boundaryFieldReader(Case::FOAMCase)
