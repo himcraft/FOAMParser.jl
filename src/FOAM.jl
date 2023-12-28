@@ -1,6 +1,7 @@
 module FOAM
 
 using GZip
+using HDF5
 
 export FOAMCase
 export internalFieldReader
