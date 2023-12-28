@@ -60,6 +60,14 @@ function H5internalFieldSaver(Case::FOAMCase,field::Array{Float64},fieldName::St
     end
 end
 
+function H5internalFieldSaver(Case::FOAMCase,field::String)
+    fieldData=internalFieldReader(Case,field)
+    @info "Now writing $field to HDF5 file..."
+    h5open(Case.case*".h5","w") do fid
+	fid[field]=fieldData
+    end
+end
+
 function H5internalFieldReader(Case::FOAMCase,fieldName::String)
     h5open(Case.case*".h5","r") do fid
 	field=read(fid,fieldName)
