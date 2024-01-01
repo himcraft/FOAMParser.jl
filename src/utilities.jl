@@ -1,6 +1,9 @@
-str2flt(x::String) = parse(Float64,x)
+str2flt(x::AbstractString) = parse(Float64,x)
 str2int(x::String) = parse(Int64,x)
-
+function str2vec(x::String) 
+    a,b,c = str2flt.(split(replace(x,"("=>"",")"=>"")))
+    return a,b,c
+end
 
 """
 FOAMCase(gz::Bool,case::String)
@@ -10,28 +13,31 @@ case: case name.
 timeLength: number of time slots.
 timeSequence: sequence of time slots.
 cells: number of mesh cells. TODO: only 1D for now
-fieldList: names of output fields.
+fieldList: names of OPENFOAM output fields to be read and parsed.
 fieldType: types of output fields. (:scalar & :vector)
+fieldPtrList: names of fields to be stored.
 """
 struct FOAMCase
-    gz           :: Bool
-    case         :: String
-    timeLength   :: Integer
-    timeSequence :: Vector{String}
-    cells        :: Integer
-    fieldList    :: Vector{String}
-    fieldType    :: Vector{String}
+    gz              :: Bool
+    case            :: String
+    timeLength      :: Integer
+    timeSequence    :: Vector{String}
+    cells           :: Integer
+    fieldList       :: Vector{String}
+    fieldType       :: Vector{String}
+    fieldPtrList    :: Vector{String}
     function FOAMCase(gz::Bool,case::String)
         timeSequence = fileList(case)
         timeLength = length(timeSequence)
         cells = countCells(case,gz)
-        fieldList,fieldType = readFieldNames(case,timeSequence,gz)
-        new(gz,case,timeLength,timeSequence,cells,fieldList,fieldType)
+        fieldList,fieldType,fieldPtrList = readFieldNames(case,timeSequence,gz)
+        new(gz,case,timeLength,timeSequence,cells,fieldList,fieldType,fieldPtrList)
     end
     function FOAMCase(gz::Bool,case::String,timeLength::Integer,
 		    timeSequence::Vector{String},cells::Integer,
-		    fieldList::Vector{String},fieldType::Vector{String})
-	new(gz,case,timeLength,timeSequence,cells,fieldList,fieldType)
+		    fieldList::Vector{String},fieldType::Vector{String},
+		    fieldPtrList::Vector{String})
+	new(gz,case,timeLength,timeSequence,cells,fieldList,fieldType,fieldPtrList)
     end
 end
 
@@ -117,15 +123,22 @@ function readFieldNames(case::String,dir::Array{String},gz::Bool)
     if !isempty(calcdir)
         fieldList = filter!(x -> isfile(case*"/"*calcdir[1]*"/"*x) , readdir(case*"/"*calcdir[1]))
         fieldList = replace.(fieldList , ".gz" => "")
+	fieldPtrList = copy(fieldList)
 	fieldType = Array{String}(undef,length(fieldList))
 	for (num,field) in enumerate(fieldList)
-	    fieldLines=foamOpen(case*"/"*calcdir[1]*"/"*field,gz)
-	    fieldType[num]=replace(split(fieldLines[12])[2],";"=>"")
+	    fieldLines = foamOpen(case*"/"*calcdir[1]*"/"*field,gz)
+	    fieldType[num] = replace(split(fieldLines[12])[2],";"=>"")
+	    if fieldType[num] == "volVectorField"
+		vecname = field
+		fieldPtrList[num] = field*"x"
+		insert!(fieldPtrList,num+1,field*"z")	
+		insert!(fieldPtrList,num+1,field*"y")	
+	    end
 	end
     else
 	error("only 0/ directory exist")
     end
-    return fieldList,fieldType
+    return fieldList,fieldType,fieldPtrList
 end
 
 function writeFOAMCase(Case::FOAMCase)
