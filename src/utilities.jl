@@ -141,7 +141,7 @@ function readFieldNames(case::String,dir::Array{String},gz::Bool)
     return fieldList,fieldType,fieldPtrList
 end
 
-function writeFOAMCase(Case::FOAMCase)
+function saveFOAMCase(Case::FOAMCase)
     h5open(Case.case*".h5","cw") do fid
 	if "FOAMCase" in keys(fid)
 	    delete_object(fid,"FOAMCase")
@@ -153,11 +153,12 @@ function writeFOAMCase(Case::FOAMCase)
 	g["timeSequence"] = Case.timeSequence
 	g["cells"]        = Case.cells
 	g["fieldList"]    = Case.fieldList
-	g["fieldType"]    = Case.fieldType;
+	g["fieldType"]    = Case.fieldType
+	g["fieldPtrList"] = Case.fieldPtrList
     end
 end
 
-function readFOAMCase(case::String)
+function loadFOAMCase(case::String)
     fid = h5open(case*".h5","r")
     g = fid["FOAMCase"]
     gz           = read(g["gz"])
@@ -166,7 +167,8 @@ function readFOAMCase(case::String)
     cells        = read(g["cells"])
     fieldList    = read(g["fieldList"])
     fieldType    = read(g["fieldType"])
+    fieldPtrList = read(g["fieldPtrList"])
     close(fid)
-    return FOAMCase(gz,case,timeLength,timeSequence,cells,fieldList,fieldType)
+    return FOAMCase(gz,case,timeLength,timeSequence,cells,fieldList,fieldType,fieldPtrList)
 end
 	
