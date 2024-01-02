@@ -129,10 +129,10 @@ function readFieldNames(case::String,dir::Array{String},gz::Bool)
 	    fieldLines = foamOpen(case*"/"*calcdir[1]*"/"*field,gz)
 	    fieldType[num] = replace(split(fieldLines[12])[2],";"=>"")
 	    if fieldType[num] == "volVectorField"
-		vecname = field
-		fieldPtrList[num] = field*"x"
-		insert!(fieldPtrList,num+1,field*"z")	
-		insert!(fieldPtrList,num+1,field*"y")	
+		vecPos = findfirst(fieldPtrList .== field)
+		fieldPtrList[vecPos] = field*"x"
+		insert!(fieldPtrList,vecPos+1,field*"z")	
+		insert!(fieldPtrList,vecPos+1,field*"y")	
 	    end
 	end
     else
