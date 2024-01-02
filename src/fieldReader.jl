@@ -70,24 +70,23 @@ function internalFieldReader(Case::FOAMCase,field::String)
                     error("error in reading field data")
                 end
             elseif fieldType == "volVectorField"
-                continue
-		if split(fieldContent[20])[2] == "nonuniform"
-		    tmpFieldData = stact(str2vec.(fileContent[23:22+Case.cells]))
-		    if fieldComp == ""
+		if split(fileContent[20])[2] == "nonuniform"
+		    tmpFieldData = stack(str2vec.(fileContent[23:22+Case.cells]))
+		    if !(@isdefined fieldComp)
 			fieldData1[t,:] = tmpFieldData[1,:]
 			fieldData2[t,:] = tmpFieldData[2,:]
 			fieldData3[t,:] = tmpFieldData[3,:]
 		    else
-			fieldData = tmpFieldData[Int(Char(fieldComp[end]))-119,:]
+			fieldData[t,:]  = tmpFieldData[Int(Char(fieldComp[end]))-119,:]
 		    end
 		elseif split(fileContent[20])[2] == "uniform"
-		    tmpFieldData = str2vec(replace(split(fileContent[20])[3],";"=>""))
-		    if fieldComp == ""
+		    tmpFieldData = str2vec(replace(join(split(fileContent[20])[3:5]," "),";"=>""))
+		    if !(@isdefined fieldComp)
 			fieldData1[t,:] .= tmpFieldData[1]
 			fieldData2[t,:] .= tmpFieldData[2]
 			fieldData3[t,:] .= tmpFieldData[3]
 		    else
-			fieldData .= tmpFieldData[Int(Char(fieldComp[end]))-119]
+			fieldData[t,:]  .= tmpFieldData[Int(Char(fieldComp[end]))-119]
 		    end
 		end
 	    else
