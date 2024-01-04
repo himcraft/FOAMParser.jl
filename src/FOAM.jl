@@ -11,8 +11,8 @@ export H5internalFieldReader
 # export boundaryFieldReader
 export printCaseSettings
 export printFieldNames
-export writeFOAMCase
-export readFOAMCase
+export saveFOAMCase
+export loadFOAMCase
 
 include("utilities.jl")
 include("fieldReader.jl")
