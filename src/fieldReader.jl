@@ -136,3 +136,19 @@ function H5internalFieldReader(Case::FOAMCase,fieldName::String)
 	field = read(fid,fieldName)
     end
 end
+
+function H5removeInternalField(Case::FOAMCase,fieldName::String)
+    h5open(Case.case*".h5","cw") do fid
+	if fieldName in keys(fid)
+	    delete_object(fid,fieldName)
+	else
+	    error("There is no such field.")
+	end
+    end
+end
+
+function H5fieldList(Case::FOAMCase)
+    h5open(Case.case*".h5","r") do fid
+	println(keys(fid))
+    end
+end

@@ -13,6 +13,8 @@ export printCaseSettings
 export printFieldNames
 export saveFOAMCase
 export loadFOAMCase
+export H5fieldList
+export H5removeInternalField
 
 include("utilities.jl")
 include("fieldReader.jl")
